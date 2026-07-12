@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<title>MedQuiz</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--card:#21262d;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--accent:#2f81f7;--accent2:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;--radius:10px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;gap:16px}
+.screen.active{display:flex}
+/* Header */
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 0}
+.hdr h1{font-size:1.1rem;font-weight:600;letter-spacing:-.02em}
+.hdr .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.hdr-right{margin-left:auto;display:flex;gap:6px}
+.ibtn{background:var(--surface);border:1px solid var(--border);color:var(--text2);width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .15s}
+.ibtn:active{transform:scale(.94);background:var(--card)}
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+/* Quote card */
+.quote-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.quote-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent)}
+.quote-card .label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);font-weight:600;margin-bottom:8px}
+.quote-card .text{font-size:.92rem;line-height:1.6;color:var(--text)}
+.quote-card .src{font-size:.75rem;color:var(--text2);margin-top:10px;font-style:italic}
+/* Topic card */
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s}
+.topic-card:active{transform:scale(.98)}
+.topic-card .label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--yellow);font-weight:600;margin-bottom:6px}
+.topic-card h3{font-size:.95rem;font-weight:600;margin-bottom:4px}
+.topic-card p{font-size:.8rem;color:var(--text2);line-height:1.5}
+/* Section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
+.sec-hdr h2{font-size:.85rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.sec-hdr .see-all{font-size:.8rem;color:var(--accent2);cursor:pointer;border:none;background:none}
+/* Test list */
+.test-list{display:flex;flex-direction:column;gap:8px}
+.test-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .15s}
+.test-item:active{transform:scale(.98)}
+.test-item .icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.test-item .info{flex:1;min-width:0}
+.test-item .info h3{font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.test-item .info p{font-size:.75rem;color:var(--text2);margin-top:2px}
+.test-item .arrow{color:var(--text2);font-size:.8rem}
+.test-item .progress{width:40px;height:4px;background:var(--card);border-radius:2px;overflow:hidden;flex-shrink:0}
+.test-item .progress .fill{height:100%;background:var(--accent);border-radius:2px}
+/* Stats row */
+.stats-row{display:flex;gap:8px}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-card .num{font-size:1.3rem;font-weight:700}
+.stat-card .label{font-size:.7rem;color:var(--text2);margin-top:2px}
+/* Quiz */
+.q-hdr{display:flex;align-items:center;gap:10px}
+.q-hdr .back{background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:4px}
+.q-hdr h2{font-size:.95rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-hdr .ctr{font-size:.8rem;color:var(--text2)}
+.pbar{height:3px;background:var(--card);border-radius:2px;overflow:hidden}
+.pbar .fill{height:100%;background:var(--accent);transition:width .3s}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;flex:1;overflow-y:auto}
+.q-num{font-size:.72rem;color:var(--accent2);font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.q-text{font-size:.92rem;line-height:1.6;margin-bottom:14px}
+.q-img{max-width:100%;border-radius:8px;margin-bottom:12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{background:var(--card);border:2px solid transparent;border-radius:8px;padding:11px 14px;cursor:pointer;transition:all .15s;display:flex;gap:10px;align-items:flex-start}
+.opt:active{transform:scale(.98)}
+.opt .lbl{width:26px;height:26px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;transition:all .15s}
+.opt .txt{font-size:.86rem;line-height:1.5;flex:1}
+.opt.sel{border-color:var(--accent)}
+.opt.sel .lbl{background:var(--accent);color:#fff}
+.opt.ok{border-color:var(--green);background:rgba(63,185,80,.08)}
+.opt.ok .lbl{background:var(--green);color:#fff}
+.opt.bad{border-color:var(--red);background:rgba(248,81,73,.08)}
+.opt.bad .lbl{background:var(--red);color:#fff}
+.opt.show-ok{border-color:var(--green);background:rgba(63,185,80,.04)}
+.opt.show-ok .lbl{background:var(--green);color:#fff}
+.opt.off{pointer-events:none;opacity:.65}
+/* Explanation */
+.expl{margin-top:14px;display:none}
+.expl.show{display:block}
+.expl-section{background:var(--card);border-radius:8px;padding:14px;margin-bottom:10px}
+.expl-section .title{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent2);font-weight:600;margin-bottom:6px}
+.expl-section .body{font-size:.84rem;line-height:1.65;color:var(--text)}
+.expl-section .body code{background:var(--surface);padding:1px 5px;border-radius:4px;font-size:.8rem}
+.expl-section .ref{color:var(--yellow)}
+.expl-section .correct{color:var(--green)}
+.expl-section .wrong{color:var(--red)}
+.expl-section .flow{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:8px;font-size:.82rem;line-height:1.6;white-space:pre-wrap}
+/* Nav */
+.q-nav{display:flex;gap:8px;padding:4px 0}
+.q-nav button{flex:1;padding:12px;border:none;border-radius:8px;font-size:.86rem;font-weight:600;cursor:pointer;transition:all .15s}
+.q-nav button:active{transform:scale(.96)}
+.btn-p{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-n{background:var(--accent);color:#fff}
+.btn-n:disabled{opacity:.35;pointer-events:none}
+.btn-s{background:var(--green);color:#fff}
+/* Dots */
+.dots{display:flex;flex-wrap:wrap;gap:5px;padding:4px 0;justify-content:center}
+.dot-btn{width:30px;height:30px;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.dot-btn.cur{background:var(--accent);color:#fff}
+.dot-btn.done{background:var(--card);color:var(--text2)}
+.dot-btn.todo{background:var(--surface);color:var(--text2);border:1px solid var(--border)}
+.dot-btn.ok-dot{background:var(--green);color:#fff}
+.dot-btn.bad-dot{background:var(--red);color:#fff}
+/* Results */
+.results{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px}
+.ring{position:relative;width:140px;height:140px}
+.ring svg{transform:rotate(-90deg)}
+.ring .bg{fill:none;stroke:var(--card);stroke-width:7}
+.ring .fg{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1.2s ease}
+.ring .score{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .pct{font-size:2.2rem;font-weight:800;color:var(--text)}
+.ring .lbl{font-size:.75rem;color:var(--text2)}
+.results h2{font-size:1.2rem;font-weight:700}
+.results .stats{display:flex;gap:20px}
+.results .stat{text-align:center}
+.results .stat .n{font-size:1.3rem;font-weight:700}
+.results .stat .l{font-size:.72rem;color:var(--text2)}
+.results .acts{display:flex;gap:10px;width:100%}
+.results .acts button{flex:1;padding:12px;border:none;border-radius:8px;font-size:.86rem;font-weight:600;cursor:pointer}
+.btn-r{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-v{background:var(--accent);color:#fff}
+/* Settings modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:20px;width:100%;max-width:480px;max-height:60vh;overflow-y:auto}
+.modal h3{font-size:.95rem;font-weight:600;margin-bottom:16px}
+.modal .opt-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.modal .opt-row:last-child{border:none}
+.modal .opt-row .lbl2{font-size:.86rem}
+.modal .opt-row .sub{font-size:.72rem;color:var(--text2);margin-top:2px}
+.toggle{position:relative;width:40px;height:22px;background:var(--card);border-radius:11px;cursor:pointer;border:1px solid var(--border);transition:all .2s}
+.toggle.on{background:var(--accent)}
+.toggle .k{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:all .2s}
+.toggle.on .k{left:20px}
+/* Import zone */
+.imp-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface)}
+.imp-zone:active{border-color:var(--accent);background:rgba(47,129,247,.05)}
+.imp-zone .ic{font-size:2rem;margin-bottom:8px}
+.imp-zone h3{font-size:.9rem;margin-bottom:4px}
+.imp-zone p{font-size:.78rem;color:var(--text2)}
+.file-in{display:none}
+/* Bookmarks */
+.bk-list{display:flex;flex-direction:column;gap:8px}
+.bk-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:all .15s}
+.bk-item:active{transform:scale(.98)}
+.bk-item h3{font-size:.86rem;font-weight:600;margin-bottom:3px}
+.bk-item p{font-size:.78rem;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty .ic{font-size:2rem;margin-bottom:8px}
+/* Toast */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);padding:8px 18px;border-radius:16px;font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.3);opacity:0;transition:all .25s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+.bk-btn{background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HOME -->
+  <div class="screen active" id="s-home">
+    <div class="hdr">
+      <div class="dot"></div>
+      <h1>MedQuiz</h1>
+      <div class="hdr-right">
+        <button class="ibtn" id="btn-bk" title="Bookmarks">🔖</button>
+        <button class="ibtn" id="btn-set" title="Settings">⚙</button>
+      </div>
+    </div>
+
+    <div class="quote-card" id="quote-card">
+      <div class="label">Thought of the Day</div>
+      <div class="text" id="quote-text"></div>
+      <div class="src" id="quote-src"></div>
+    </div>
+
+    <div class="topic-card" id="topic-card">
+      <div class="label">Topic of the Day</div>
+      <h3 id="topic-title"></h3>
+      <p id="topic-desc"></p>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="num" id="st-total">0</div><div class="label">Questions</div></div>
+      <div class="stat-card"><div class="num" id="st-done">0</div><div class="label">Attempted</div></div>
+      <div class="stat-card"><div class="num" id="st-acc">0%</div><div class="label">Accuracy</div></div>
+    </div>
+
+    <div class="sec-hdr"><h2>Previous Year Questions</h2></div>
+    <div class="test-list" id="pyq-list"></div>
+
+    <div id="import-section" style="display:none;margin-top:12px">
+      <div class="sec-hdr"><h2>Import</h2></div>
+      <div class="imp-zone" id="imp-zone">
+        <div class="ic">📄</div>
+        <h3>Import HTML File</h3>
+        <p>Tap to select CEREB HTML files</p>
+        <input type="file" class="file-in" id="file-in" accept=".html,.htm" multiple>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="s-quiz">
+    <div class="q-hdr">
+      <button class="back" id="btn-back">←</button>
+      <h2 id="q-title"></h2>
+      <span class="ctr" id="q-ctr"></span>
+      <button class="bk-btn" id="btn-bm">🤍</button>
+    </div>
+    <div class="pbar"><div class="fill" id="pbar"></div></div>
+    <div class="q-card" id="q-card">
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <img class="q-img" id="q-img" style="display:none">
+      <div class="opts" id="opts"></div>
+      <div class="expl" id="expl"></div>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="q-nav">
+      <button class="btn-p" id="btn-prev">← Prev</button>
+      <button class="btn-n" id="btn-next">Next →</button>
+      <button class="btn-s" id="btn-submit" style="display:none">Submit</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="s-results">
+    <div class="results">
+      <div class="ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="bg" cx="70" cy="70" r="60"/>
+          <circle class="fg" id="r-circ" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/>
+        </svg>
+        <div class="score"><div class="pct" id="r-pct">0%</div><div class="lbl">Score</div></div>
+      </div>
+      <h2 id="r-title"></h2>
+      <div class="stats">
+        <div class="stat"><div class="n" id="r-ok" style="color:var(--green)">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="n" id="r-bad" style="color:var(--red)">0</div><div class="l">Wrong</div></div>
+        <div class="stat"><div class="n" id="r-total">0</div><div class="l">Total</div></div>
+      </div>
+      <div class="acts">
+        <button class="btn-r" id="btn-retry">Retry</button>
+        <button class="btn-v" id="btn-review">Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKMARKS -->
+  <div class="screen" id="s-bk">
+    <div class="q-hdr">
+      <button class="back" id="btn-bk-back">←</button>
+      <h2>Bookmarks</h2>
+    </div>
+    <div class="bk-list" id="bk-list"></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>Settings</h3>
+    <div class="opt-row">
+      <div><div class="lbl2">Dark Mode</div><div class="sub">Reduce eye strain</div></div>
+      <div class="toggle on" id="tog-dark"><div class="k"></div></div>
+    </div>
+    <div class="opt-row">
+      <div><div class="lbl2">Show Explanations</div><div class="sub">After answering each question</div></div>
+      <div class="toggle on" id="tog-expl"><div class="k"></div></div>
+    </div>
+    <div class="opt-row" id="import-toggle-row" style="display:none">
+      <div><div class="lbl2">Import HTML Files</div><div class="sub">Add custom question banks</div></div>
+      <div class="toggle" id="tog-import"><div class="k"></div></div>
+    </div>
+    <div class="opt-row">
+      <div><div class="lbl2">Reset Progress</div><div class="sub">Clear all saved answers</div></div>
+      <button class="ibtn" id="btn-reset" style="width:auto;padding:0 12px;font-size:.78rem;color:var(--red)">Reset</button>
+    </div>
+    <div style="margin-top:16px;text-align:center">
+      <button class="ibtn" id="btn-close-set" style="width:100%;height:36px;font-size:.82rem">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// State
+const ST = {
+  tests: [],
+  cur: 0,
+  testIdx: 0,
+  ans: {},
+  bks: new Set(),
+  wrongs: [],
+  showExpl: true,
+  dark: true,
+};
+
+// Quotes
+const QUOTES = [
+  {text:"The good physician treats the disease; the great physician treats the patient who has the disease.",src:"— William Osler"},
+  {text:"Cure sometimes, treat often, comfort always.",src:"— Hippocrates"},
+  {text:"The art of medicine consists of amusing the patient while nature cures the disease.",src:"— Voltaire"},
+  {text:"It is much more important to know what sort of patient has a disease than what sort of disease a patient has.",src:"— William Osler"},
+  {text:"The best doctor gives the least medicines.",src:"— Benjamin Franklin"},
+  {text:"A physician who treats himself has a fool for a patient.",src:"— William Osler"},
+  {text:"Wherever the art of medicine is loved, there is also a love of humanity.",src:"— Hippocrates"},
+  {text:"The human body is the best picture of the human soul.",src:"— Ludwig Wittgenstein"},
+  {text:"Medicine is a science of uncertainty and an art of probability.",src:"— William Osler"},
+  {text:"To study the phenomena of disease without books is to sail an uncharted sea, while to study books without patients is not to go to sea at all.",src:"— William Osler"},
+  {text:"The only way to do great work is to love what you do.",src:"— Steve Jobs"},
+  {text:"Anatomy is to physiology as geography is to history; it describes the theatre of events.",src:"— Jean Fernel"},
+  {text:"The brain is the last and grandest biological frontier, the most complex thing we have yet discovered in our universe.",src:"— James Watson"},
+  {text:"Know thyself.",src:"— Inscription at the Temple of Delphi"},
+];
+
+// Topics
+const TOPICS = [
+  {title:"Nucleus Pulposus & Embryology",desc:"Review the embryological origins of intervertebral structures — notochord vs. mesoderm derivatives."},
+  {title:"The Limbic System",desc:"Trace the Papez circuit: hippocampus → fornix → mamillary body → anterior thalamus."},
+  {title:"Muscles of Mastication",desc:"Lateral pterygoid is the only depressor. Know origin, insertion, and actions of all four muscles."},
+  {title:"Skull Base Foramina",desc:"Foramen ovale = V3, Foramen spinosum = MMA. Master the contents of each opening."},
+  {title:"Diaphragmatic Openings",desc:"IVC through central tendon (T8), oesophagus through muscular part (T10), aorta behind (T12)."},
+  {title:"Sympathetic Chain",desc:"White rami = preganglionic, myelinated. Grey rami = postganglionic, unmyelinated."},
+  {title:"Pharyngeal Pouches",desc:"3rd pouch = thymus + inferior parathyroid. DiGeorge syndrome = 22q11.2 deletion."},
+  {title:"Pelvic Floor Anatomy",desc:"Pelvic diaphragm = levator ani + coccygeus. Know the boundaries and contents."},
+];
+
+function init() {
+  const q = new Date().getDate() % QUOTES.length;
+  $('#quote-text').textContent = QUOTES[q].text;
+  $('#quote-src').textContent = QUOTES[q].src;
+  const t = new Date().getDate() % TOPICS.length;
+  $('#topic-title').textContent = TOPICS[t].title;
+  $('#topic-desc').textContent = TOPICS[t].desc;
+  loadBuiltIn();
+  renderHome();
+}
+
+function loadBuiltIn() {
+  if (typeof ENHANCED_QUESTIONS !== 'undefined') {
+    ST.tests = [{name:'Anatomy PYQs — AIIMS 2017', questions: ENHANCED_QUESTIONS}];
+  }
+}
+
+function renderHome() {
+  const list = $('#pyq-list');
+  list.innerHTML = '';
+  ST.tests.forEach((t, i) => {
+    const answered = Object.keys(ST.ans).filter(k => k.startsWith(i+'-')).length;
+    const pct = t.questions.length ? Math.round(answered/t.questions.length*100) : 0;
+    const colors = ['#2f81f7','#3fb950','#d29922','#f85149','#8b5cf6','#ec4899'];
+    const el = document.createElement('div');
+    el.className = 'test-item';
+    el.innerHTML = `
+      <div class="icon" style="background:${colors[i%colors.length]}22;color:${colors[i%colors.length]}">📋</div>
+      <div class="info"><h3>${t.name}</h3><p>${t.questions.length} questions</p></div>
+      <div class="progress"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="arrow">›</div>`;
+    el.onclick = () => startQuiz(i);
+    list.appendChild(el);
+  });
+  updateStats();
+}
+
+function updateStats() {
+  let total = 0, done = 0, correct = 0;
+  ST.tests.forEach((t, i) => {
+    total += t.questions.length;
+    t.questions.forEach((q, j) => {
+      const k = i+'-'+j;
+      if (ST.ans[k]) {
+        done++;
+        const opt = q.options.find(o => o.label === ST.ans[k]);
+        if (opt?.correct || ST.ans[k] === q.correctAnswer) correct++;
+      }
+    });
+  });
+  $('#st-total').textContent = total;
+  $('#st-done').textContent = done;
+  $('#st-acc').textContent = done ? Math.round(correct/done*100)+'%' : '0%';
+}
+
+function startQuiz(idx) {
+  ST.testIdx = idx;
+  ST.cur = 0;
+  ST.ans = {};
+  ST.wrongs = [];
+  loadProgress(idx);
+  renderQ();
+  show('s-quiz');
+}
+
+function loadProgress(idx) {
+  try {
+    const s = localStorage.getItem('p'+idx);
+    if (s) {
+      const d = JSON.parse(s);
+      ST.ans = d.a || {};
+      ST.bks = new Set(d.b || []);
+    }
+  } catch(e) {}
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem('p'+ST.testIdx, JSON.stringify({a:ST.ans,b:[...ST.bks]}));
+  } catch(e) {}
+}
+
+function renderQ() {
+  const test = ST.tests[ST.testIdx];
+  const q = test.questions[ST.cur];
+  const total = test.questions.length;
+  const key = ST.testIdx+'-'+ST.cur;
+
+  $('#q-title').textContent = test.name;
+  $('#q-ctr').textContent = (ST.cur+1)+'/'+total;
+  $('#pbar').style.width = ((ST.cur+1)/total*100)+'%';
+  $('#q-num').textContent = 'Question '+(ST.cur+1);
+  $('#q-text').innerHTML = q.question;
+
+  const img = $('#q-img');
+  if (q.image) {
+    img.src = 'images/questions/q'+(ST.cur+1)+'.jpg';
+    img.style.display = 'block';
+    img.onerror = () => img.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+  }
+
+  const c = $('#opts');
+  c.innerHTML = '';
+  const sel = ST.ans[key];
+  const answered = !!sel;
+
+  q.options.forEach(opt => {
+    const d = document.createElement('div');
+    d.className = 'opt';
+    const isCorrect = opt.correct || opt.label === q.correctAnswer;
+    if (answered) {
+      d.classList.add('off');
+      if (opt.label === sel && isCorrect) d.classList.add('ok');
+      else if (opt.label === sel && !isCorrect) d.classList.add('bad');
+      else if (isCorrect) d.classList.add('show-ok');
+    }
+    d.innerHTML = `<div class="lbl">${opt.label}</div><div class="txt">${opt.text}</div>`;
+    if (!answered) d.onclick = () => pickOpt(opt.label);
+    c.appendChild(d);
+  });
+
+  // Explanation
+  const expl = $('#expl');
+  if (answered && q.explanation) {
+    let html = '';
+    const e = q.explanation;
+    if (e.short) html += `<div class="expl-section"><div class="title">Answer</div><div class="body correct">${e.short}</div></div>`;
+    if (e.detailed) html += `<div class="expl-section"><div class="title">Explanation</div><div class="body">${e.detailed}</div></div>`;
+    if (e.reference) html += `<div class="expl-section"><div class="title">📚 Reference</div><div class="body ref">${e.reference}</div></div>`;
+    if (e.whyOthersWrong) html += `<div class="expl-section"><div class="title">Why Other Options Are Wrong</div><div class="body wrong">${e.whyOthersWrong}</div></div>`;
+    if (e.examinerWants) html += `<div class="expl-section"><div class="title">🎯 What the Examiner Wants</div><div class="body">${e.examinerWants}</div></div>`;
+    if (e.differentiator) html += `<div class="expl-section"><div class="title">🔑 Key Differentiator</div><div class="body">${e.differentiator}</div></div>`;
+    if (e.flowchart) html += `<div class="expl-section"><div class="title">📊 Flowchart / Algorithm</div><div class="flow">${e.flowchart}</div></div>`;
+    if (e.mnemonic) html += `<div class="expl-section"><div class="title">🧠 Mnemonic</div><div class="body">${e.mnemonic}</div></div>`;
+    expl.innerHTML = html;
+    expl.classList.add('show');
+  } else {
+    expl.classList.remove('show');
+  }
+
+  updateBmBtn();
+  renderDots();
+
+  $('#btn-prev').style.display = ST.cur > 0 ? '' : 'none';
+  const last = ST.cur === total - 1;
+  $('#btn-next').style.display = (!last && answered) ? '' : 'none';
+  $('#btn-submit').style.display = last ? '' : 'none';
+  if (!last) {
+    $('#btn-next').style.display = '';
+    $('#btn-submit').style.display = 'none';
+  }
+}
+
+function pickOpt(label) {
+  ST.ans[ST.testIdx+'-'+ST.cur] = label;
+  saveProgress();
+  renderQ();
+}
+
+function renderDots() {
+  const test = ST.tests[ST.testIdx];
+  const c = $('#dots');
+  c.innerHTML = '';
+  const total = test.questions.length;
+  const step = total > 30 ? Math.ceil(total/30) : 1;
+  for (let i = 0; i < total; i += step) {
+    const d = document.createElement('button');
+    d.className = 'dot-btn';
+    const k = ST.testIdx+'-'+i;
+    const sel = ST.ans[k];
+    if (i === ST.cur) d.classList.add('cur');
+    else if (sel) {
+      const q = test.questions[i];
+      const opt = q.options.find(o => o.label === sel);
+      d.classList.add(opt?.correct || sel === q.correctAnswer ? 'ok-dot' : 'bad-dot');
+    } else d.classList.add('todo');
+    d.textContent = i+1;
+    d.onclick = () => { ST.cur = i; renderQ(); };
+    c.appendChild(d);
+  }
+}
+
+function updateBmBtn() {
+  const k = ST.testIdx+'-'+ST.cur;
+  $('#btn-bm').textContent = ST.bks.has(k) ? '❤️' : '🤍';
+}
+
+function toggleBm() {
+  const k = ST.testIdx+'-'+ST.cur;
+  if (ST.bks.has(k)) ST.bks.delete(k); else ST.bks.add(k);
+  saveProgress();
+  updateBmBtn();
+  toast(ST.bks.has(k) ? 'Bookmarked' : 'Removed');
+}
+
+function showResults() {
+  const test = ST.tests[ST.testIdx];
+  let ok = 0, bad = 0;
+  ST.wrongs = [];
+  test.questions.forEach((q, i) => {
+    const k = ST.testIdx+'-'+i;
+    const sel = ST.ans[k];
+    const opt = q.options.find(o => o.label === sel);
+    if (opt?.correct || sel === q.correctAnswer) ok++; else { bad++; ST.wrongs.push(i); }
+  });
+  const total = test.questions.length;
+  const pct = Math.round(ok/total*100);
+  $('#r-pct').textContent = pct+'%';
+  $('#r-ok').textContent = ok;
+  $('#r-bad').textContent = bad;
+  $('#r-total').textContent = total;
+  $('#r-title').textContent = pct>=80?'Excellent!':pct>=60?'Good Work!':pct>=40?'Keep Going':'Study More';
+  const circ = $('#r-circ');
+  const c = 2*Math.PI*60;
+  circ.style.strokeDasharray = c;
+  circ.style.strokeDashoffset = c;
+  circ.style.stroke = pct>=60?'var(--green)':pct>=40?'var(--yellow)':'var(--red)';
+  requestAnimationFrame(() => { circ.style.strokeDashoffset = c - (pct/100*c); });
+  show('s-results');
+}
+
+function renderBk() {
+  const list = $('#bk-list');
+  list.innerHTML = '';
+  if (ST.bks.size === 0) {
+    list.innerHTML = '<div class="empty"><div class="ic">🔖</div><p>No bookmarks yet</p></div>';
+    show('s-bk'); return;
+  }
+  ST.bks.forEach(k => {
+    const [ti,qi] = k.split('-').map(Number);
+    const test = ST.tests[ti];
+    if (!test) return;
+    const q = test.questions[qi];
+    if (!q) return;
+    const el = document.createElement('div');
+    el.className = 'bk-item';
+    el.innerHTML = `<h3>${test.name} — Q${qi+1}</h3><p>${q.question.replace(/<[^>]+>/g,'')}</p>`;
+    el.onclick = () => startQuiz(ti);
+    list.appendChild(el);
+  });
+  show('s-bk');
+}
+
+function show(id) {
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $('#'+id).classList.add('active');
+}
+
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// Events
+$('#btn-back').onclick = () => { saveProgress(); renderHome(); show('s-home'); };
+$('#btn-prev').onclick = () => { if (ST.cur > 0) { ST.cur--; renderQ(); } };
+$('#btn-next').onclick = () => { const t = ST.tests[ST.testIdx]; if (ST.cur < t.questions.length-1) { ST.cur++; renderQ(); } };
+$('#btn-submit').onclick = () => showResults();
+$('#btn-bm').onclick = () => toggleBm();
+$('#btn-retry').onclick = () => { ST.ans = {}; ST.cur = 0; ST.wrongs = []; renderQ(); show('s-quiz'); };
+$('#btn-review').onclick = () => { ST.cur = ST.wrongs[0]||0; renderQ(); show('s-quiz'); };
+$('#btn-bk').onclick = () => renderBk();
+$('#btn-bk-back').onclick = () => { renderHome(); show('s-home'); };
+
+// Settings
+$('#btn-set').onclick = () => $('#settings-modal').classList.add('show');
+$('#btn-close-set').onclick = () => $('#settings-modal').classList.remove('show');
+$('#settings-modal').onclick = e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('show'); };
+
+// Import toggle (hidden by default, triple-tap on version to show)
+let tapCount = 0;
+$('.dot').onclick = () => {
+  tapCount++;
+  if (tapCount >= 3) {
+    $('#import-toggle-row').style.display = '';
+    tapCount = 0;
+  }
+};
+
+$('#tog-import').onclick = function() {
+  this.classList.toggle('on');
+  $('#import-section').style.display = this.classList.contains('on') ? '' : 'none';
+};
+
+$('#imp-zone').onclick = () => $('#file-in').click();
+$('#file-in').onchange = async e => {
+  for (const file of e.target.files) {
+    const html = await file.text();
+    const tests = parseCEREB(html);
+    if (tests.length) {
+      tests.forEach(t => ST.tests.push(t));
+      toast('Imported '+tests.reduce((s,t)=>s+t.questions.length,0)+' questions');
+      renderHome();
+    } else {
+      toast('No questions found');
+    }
+  }
+};
+
+function parseCEREB(html) {
+  // Simplified parser for CEREB format
+  const tests = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const iframes = doc.querySelectorAll('iframe[srcdoc]');
+  iframes.forEach(iframe => {
+    let src = iframe.getAttribute('srcdoc');
+    const ta = document.createElement('textarea');
+    ta.innerHTML = src;
+    src = ta.value;
+    const sub = parser.parseFromString(src, 'text/html');
+    const scripts = sub.querySelectorAll('script');
+    let questions = [];
+    let name = iframe.getAttribute('title') || 'Imported';
+    for (const sc of scripts) {
+      const m = sc.textContent.match(/questions\s*=\s*(\[[\s\S]*?\]);/);
+      if (m) {
+        try { questions = eval(m[1]); } catch(e) {}
+      }
+    }
+    if (questions.length) {
+      questions = questions.map(q => ({
+        question: q.text || q.question || '',
+        options: (q.options||[]).map((o,i) => ({label: o.label||String.fromCharCode(65+i), text: o.text||o, correct: o.correct===true})),
+        correctAnswer: q.correctAnswer || q.correctanswer || q.ans || (q.options||[]).find(o=>o.correct)?.label || 'A',
+        explanation: {short: q.explanation || q.expl || ''}
+      }));
+      tests.push({name, questions});
+    }
+  });
+  return tests;
+}
+
+// Dark mode toggle
+$('#tog-dark').onclick = function() {
+  this.classList.toggle('on');
+  ST.dark = this.classList.contains('on');
+  document.body.style.filter = ST.dark ? 'none' : 'invert(1) hue-rotate(180deg)';
+};
+
+$('#tog-expl').onclick = function() {
+  this.classList.toggle('on');
+  ST.showExpl = this.classList.contains('on');
+};
+
+$('#btn-reset').onclick = () => {
+  if (confirm('Reset all progress?')) {
+    ST.ans = {};
+    ST.bks = new Set();
+    localStorage.clear();
+    renderHome();
+    toast('Progress reset');
+  }
+};
+
+// Inline the enhanced questions data
+const ENHANCED_QUESTIONS_DATA = [{"id":1,"exam":"AIIMS 2017","question":"Nucleus pulposus is derived from ____________.","options":[{"label":"A","text":"Notochord"},{"label":"B","text":"Ectoderm"},{"label":"C","text":"Endoderm"},{"label":"D","text":"Intraembryonic mesoderm"}],"correctAnswer":"A","explanation":{"short":"Nucleus pulposus is derived from the notochord.","detailed":"The nucleus pulposus is the gelatinous center of the intervertebral disc, and it is derived from the notochord (embryonic axial structure). During development, notochordal cells persist within the developing vertebral column and form the nucleus pulposus.","reference":"Gray's Anatomy, 41st Edition, Chapter 4 (Embryology): \"The notochord persists in the adult as the nucleus pulposus of the intervertebral discs.\" — Gray's also states: \"Notochordal cells are largely confined to the nucleus pulposus of the intervertebral disc in the adult.\"","whyOthersWrong":"• Ectoderm (B): Gives rise to the neural tube, skin epidermis — not disc structures.\n• Endoderm (C): Forms the gut lining and associated organs — unrelated to vertebral development.\n• Intraembryonic mesoderm (D): Gives rise to somites (sclerotome forms vertebral bodies), but the nucleus pulposus specifically comes from the notochord, not the mesoderm.","examinerWants":"The examiner is testing whether you can distinguish between notochord-derived structures (nucleus pulposus) and mesoderm-derived structures (vertebral bodies from sclerotome). This is a classic embryology distinction that appears repeatedly in AIIMS exams.","differentiator":"Key distinction: Notochord → Nucleus pulposus. Sclerotome (mesoderm) → Vertebral bodies and arches. If the question asked about vertebral bodies, the answer would be sclerotome/mesoderm.","mnemonic":"Notochord = Nucleus (both start with N)"},"image":"q1.jpg"},{"id":2,"exam":"AIIMS 2017","question":"What is the origin of the fibers marked by the arrow?","options":[{"label":"A","text":"Hippocampus"},{"label":"B","text":"Habenular"},{"label":"C","text":"Mamillary body"},{"label":"D","text":"Amygdala"}],"correctAnswer":"A","explanation":{"short":"The arrow indicates the fornix, which arises from the hippocampus.","detailed":"The fornix is a C-shaped bundle of nerve fibers that carries signals from the hippocampus to the mamillary body of the hypothalamus. It is the major efferent pathway of the hippocampus and is classified as an association fiber. It is supplied by the anterior cerebral artery.","reference":"Gray's Anatomy, 41st Edition, Chapter 18 (Nervous System): \"The fornix is the principal efferent projection of the hippocampus. Its fibres arise from pyramidal cells in the hippocampus and converge to form the crus of the fornix.\" — Netter's Atlas of Neuroscience: \"Fornix fibers originate in the hippocampus and project to the mamillary bodies, septal nuclei, and anterior thalamus.\"","whyOthersWrong":"• Habenular (B): The habenular nucleus connects to the pineal gland via the habenular commissure — not the fornix.\n• Mamillary body (C): This is the TERMINATION point of the fornix, not its origin. The fornix ENDS in the mamillary body.\n• Amygdala (D): The amygdala has its own projections (stria terminalis) but does not give rise to the fornix.","examinerWants":"The examiner is testing your knowledge of the limbic system circuit: Hippocampus → Fornix → Mamillary body → Mammillothalamic tract → Anterior thalamus → Cingulate gyrus → Hippocampus (Papez circuit).","differentiator":"Origin vs. Termination: Fornix ARISES from hippocampus and TERMINATES in mamillary body. The question asks about origin — so hippocampus is correct, not mamillary body.","mnemonic":"Fornix = From hippocampus (F for F, H for H)"},"image":"q2.jpg"},{"id":3,"exam":"AIIMS 2017","question":"Among the following, what is the function of the marked muscles?","options":[{"label":"A","text":"Depression"},{"label":"B","text":"Protrusion"}],"correctAnswer":"A","explanation":{"short":"The lateral pterygoid muscle's primary function is depression (opening) of the mandible.","detailed":"Bilateral contraction of the lateral pterygoid alone causes depression of the mandible (making it the primary function). Protrusion requires bilateral contraction of BOTH medial and lateral pterygoid muscles together.","reference":"Gray's Anatomy, 41st Edition, Chapter 32 (Head and Neck): \"Bilateral contraction of the lateral pterygoids produces protrusion of the mandible... However, the lateral pterygoid is also the prime mover in depressing the mandible when the mouth is opened widely.\" — BD Chaurasia's Anatomy, Vol. 3: \"Lateral pterygoid is the chief muscle of depression of the mandible. Bilateral contraction opens the mouth.\"","whyOthersWrong":"• Protrusion (B): While the lateral pterygoid DOES contribute to protrusion, this requires BOTH lateral AND medial pterygoids working together. The lateral pterygoid ALONE causes depression. The question asks about the marked muscle specifically.","examinerWants":"The examiner wants you to know that the lateral pterygoid is the PRIMARY depressor of the mandible. Many students confuse this with protrusion because the lateral pterygoid does contribute to protrusion — but only when working with the medial pterygoid.","differentiator":"Lateral pterygoid ALONE = Depression. Lateral + Medial pterygoid TOGETHER = Protrusion. The question asks about the marked muscle's function, not the combined action.","flowchart":"Opening mouth:\n1. Lateral pterygoid contracts bilaterally\n2. Condyle pulled forward and down\n3. Mandible depresses\n\nProtrusion:\n1. Lateral pterygoid contracts\n2. Medial pterygoid contracts\n3. Mandible moves forward"},"image":"q3.jpg"},{"id":4,"exam":"AIIMS 2017","question":"Which of the marked foramen does the mandibular division of the trigeminal nerve pass through?","options":[{"label":"A","text":"Foramen Ovale"},{"label":"B","text":"Foramen Spinosum"},{"label":"C","text":"Internal Acoustic Meatus"},{"label":"D","text":"Jugular Foramen"}],"correctAnswer":"A","explanation":{"short":"The mandibular nerve (CN V3) passes through the foramen ovale.","detailed":"The mandibular division of the trigeminal nerve (V3) exits the middle cranial fossa through the foramen ovale. It is the only division of CN V that has both motor and sensory fibers.","reference":"Gray's Anatomy, 41st Edition, Chapter 29: \"The foramen ovale transmits the mandibular nerve, the accessory meningeal artery, and the lesser petrosal nerve.\" — BD Chaurasia: \"Foramen ovale: Mandibular nerve (V3), accessory meningeal artery, lesser petrosal nerve, emissary veins.\"","whyOthersWrong":"• Foramen Spinosum (B): Transmits the middle meningeal artery and vein, and the meningeal branch of V3 — NOT V3 itself.\n• Internal Acoustic Meatus (C): Transmits CN VII (facial) and CN VIII (vestibulocochlear) — not V3.\n• Jugular Foramen (D): Transmits CN IX, X, XI and the internal jugular vein — not V3.","examinerWants":"The examiner is testing skull base foramina — a high-yield topic. You need to know which structures pass through each foramen. Foramen ovale = V3 is one of the most commonly tested associations.","differentiator":"Foramen ovale vs. Foramen spinosum: Both are in the sphenoid bone. Ovale = V3, Spinosum = MMA. They are adjacent — the examiner wants to see if you can distinguish them.","mnemonic":"Ovale = V3 (O for 'O'ld V3). Spinosum = MMA (S for 'S'pinosum = 'S'phenoid = MMA territory)"},"image":"q4.jpg"},{"id":5,"exam":"AIIMS 2017","question":"The structure marked with the asterisk in the electron micrograph indicates __________.","options":[{"label":"A","text":"Mitochondria"},{"label":"B","text":"Golgi bodies"},{"label":"C","text":"Secretory vesicles"},{"label":"D","text":"Ribosomes"}],"correctAnswer":"C","explanation":{"short":"The marked structures are presynaptic secretory vesicles.","detailed":"On electron microscopy, presynaptic secretory vesicles appear as small, membrane-bound, electron-lucent spheres clustered near the presynaptic membrane. They contain neurotransmitters and are released into the synaptic cleft upon nerve impulse arrival.","reference":"Gray's Anatomy, 41st Edition, Chapter 3 (Cell Biology): \"Synaptic vesicles are spherical or ovoid membrane-bound organelles, 40-60 nm in diameter, that store neurotransmitters.\" — Junqueira's Histology: \"Presynaptic terminals contain numerous synaptic vesicles, mitochondria, and an electron-dense presynaptic membrane thickening.\"","whyOthersWrong":"• Mitochondria (A): Appear as oval bodies with cristae (internal folds) — larger and more complex than vesicles.\n• Golgi bodies (B): Appear as stacks of flattened cisternae — not spherical vesicles.\n• Ribosomes (D): Appear as small electron-dense granules, either free or on rough ER — much smaller than vesicles.","examinerWants":"The examiner wants you to identify ultrastructural features on EM. Synaptic vesicles are a classic EM finding — they appear as clear spheres near the synaptic cleft.","differentiator":"Vesicles = round, clear, membrane-bound, near synapse. Mitochondria = oval with internal cristae. Golgi = stacked cisternae. Ribosomes = tiny dark dots.","mnemonic":"Vesicles = 'V'isible round bubbles at synapse"},"image":"q5.jpg"},{"id":6,"exam":"AIIMS 2017","question":"In the image given below, identify the muscle responsible for the opening of the mouth.","options":[{"label":"A","text":"Temporalis"},{"label":"B","text":"Lateral pterygoid"},{"label":"C","text":"Masseter"},{"label":"D","text":"Medial pterygoid"}],"correctAnswer":"B","explanation":{"short":"The lateral pterygoid (B) is the muscle responsible for opening the mouth.","detailed":"The lateral pterygoid is the primary muscle of mandibular depression (mouth opening). Its upper head originates from the infratemporal surface and crest of the greater wing of sphenoid. Its lower head originates from the lateral surface of the lateral pterygoid plate. It inserts into the pterygoid fovea, TMJ capsule, and articular disc. Supplied by the lateral pterygoid nerve (branch of CN V3).","reference":"Gray's Anatomy, 41st Edition: \"The lateral pterygoid is the primary muscle acting to depress the mandible (open the jaw).\" — BD Chaurasia, Vol. 3: \"Lateral pterygoid is the chief muscle of depression. It is assisted by suprahyoid and infrahyoid muscles.\"","whyOthersWrong":"• Temporalis (A): Elevates the mandible (closes mouth) and retracts it (posterior fibers). Opposite action.\n• Masseter (C): Elevates the mandible (closes mouth). Also opposite action.\n• Medial pterygoid (D): Elevates and protrudes the mandible. Also opposite action.","examinerWants":"The examiner wants you to know the muscles of mastication and their actions. Lateral pterygoid is the ONLY muscle that depresses the mandible. All other muscles of mastication (temporalis, masseter, medial pterygoid) elevate it.","differentiator":"Opening mouth = Lateral pterygoid ONLY. Closing mouth = Temporalis + Masseter + Medial pterygoid. This is a fundamental distinction.","mnemonic":"Lateral pterygoid = 'L'owers the jaw. All others = Elevation."},"image":"q6.jpg"},{"id":7,"exam":"AIIMS 2017","question":"Identify the structure passing through the foramen marked.","options":[{"label":"A","text":"Abducens nerve"},{"label":"B","text":"Spinal accessory nerve"},{"label":"C","text":"Ophthalmic artery"},{"label":"D","text":"Middle meningeal artery"}],"correctAnswer":"A","explanation":{"short":"The superior orbital fissure transmits the abducens nerve (CN VI).","detailed":"The abducens nerve (CN VI) arises from the pontomedullary junction, runs through Dorello's canal at the medial end of the petrous ridge, enters the cavernous sinus (lateral to ICA), and exits through the superior orbital fissure within the common tendinous ring to supply the lateral rectus muscle.","reference":"Gray's Anatomy, 41st Edition: \"The superior orbital fissure transmits the oculomotor, trochlear, and abducens nerves, and the ophthalmic division of the trigeminal nerve.\" — Netter's Atlas: \"CN VI passes through the SOF within the common tendinous ring (of Zinn).\"","whyOthersWrong":"• Spinal accessory nerve (B): Passes through the foramen magnum with the medulla and vertebral arteries.\n• Ophthalmic artery (C): Passes through the optic canal with the optic nerve — NOT the SOF.\n• Middle meningeal artery (D): Passes through the foramen spinosum — NOT the SOF.","examinerWants":"The examiner is testing superior orbital fissure contents. CN VI is unique among SOF nerves because it passes WITHIN the tendinous ring (along with CN III, IV, and V1), while other structures pass outside the ring.","differentiator":"SOF vs. Optic Canal: SOF = CN III, IV, VI, V1. Optic Canal = CN II + Ophthalmic artery. Foramen Spinosum = MMA.","mnemonic":"SOF = 'S'ix (VI) passes through 'S'uperior orbital fissure"},"image":"q7.jpg"},{"id":8,"exam":"AIIMS 2017","question":"The talocalcaneonavicular joint is a ________ type of joint.","options":[{"label":"A","text":"Ball and Socket"},{"label":"B","text":"Saddle type"},{"label":"C","text":"Plane"},{"label":"D","text":"Ellipsoid"}],"correctAnswer":"A","explanation":{"short":"The talocalcaneonavicular joint is a ball and socket joint.","detailed":"The talocalcaneonavicular joint is a ball and socket synovial joint. The ball is formed by the rounded head of the talus. The socket is formed by three structures: the posterior surface of the navicular, the anterior articular surface of the calcaneus, and the upper surface of the spring ligament (plantar calcaneonavicular ligament).","reference":"Gray's Anatomy, 41st Edition, Chapter 86 (Lower Limb): \"The talocalcaneonavicular joint is a synovial joint of the ball-and-socket variety. The head of the talus is the ball, and the socket is formed by the navicular, the anterior articular facet of the calcaneus, and the spring ligament.\"","whyOthersWrong":"• Saddle type (B): Found in the 1st CMC joint and sternoclavicular joint — not in the foot.\n• Plane (C): Found in intercarpal, intertarsal joints — allows gliding movements only.\n• Ellipsoid (D): Found in the wrist (radiocarpal) joint — allows movement in 2 planes.","examinerWants":"The examiner wants you to know the classification of joints in the foot. The talocalcaneonavicular joint is one of the few ball-and-socket joints outside the shoulder and hip.","differentiator":"Ball and socket = multiaxial movement. This joint allows inversion/eversion and some abduction/adduction of the foot.","mnemonic":"Talo-Calcaneo-Navicular = 'T'riple socket (3 structures form the socket)"},"image":"q8.jpg"},{"id":9,"exam":"AIIMS 2017","question":"Which of the following is connected to the structure marked as A in the image below?","options":[{"label":"A","text":"Orbital cortex"},{"label":"B","text":"Hippocampus"},{"label":"C","text":"Striate cortex"},{"label":"D","text":"Optic chiasma"}],"correctAnswer":"C","explanation":{"short":"The splenium of the corpus callosum connects to the striate cortex (primary visual cortex).","detailed":"The corpus callosum is the largest white matter tract connecting the two cerebral hemispheres. Its thickened posterior end is the splenium. Fibers from the splenium form the forceps major and arch backward into the occipital lobe, connecting to the striate cortex (Brodmann area 17, primary visual cortex).","reference":"Gray's Anatomy, 41st Edition: \"The splenium is the thick posterior end of the corpus callosum; its fibres sweep posteriorly as the forceps major to enter the occipital lobe.\" — Snell's Neuroanatomy: \"The splenium contains fibers connecting the visual cortices of the two hemispheres.\"","whyOthersWrong":"• Orbital cortex (A): Connected by fibers of the genu/rostrum, not the splenium.\n• Hippocampus (B): Located inferior to the splenium but not directly connected to it. The hippocampus connects via the fornix.\n• Optic chiasma (D): A separate structure where optic nerve fibers partially decussate — not connected to the corpus callosum.","examinerWants":"The examiner is testing corpus callosum regional connections: Genu = frontal lobe, Body = parietal/temporal, Splenium = occipital (visual), Rostrum = orbital cortex.","differentiator":"Parts of corpus callosum and their connections:\n• Genu → Frontal lobe (forceps minor)\n• Body → Parietal/temporal lobes\n• Splenium → Occipital lobe (forceps major)\n• Rostrum → Orbital cortex","mnemonic":"Splenium = 'S'ight (visual cortex). Genu = 'G'rontal (frontal)."},"image":"q9.jpg"},{"id":10,"exam":"AIIMS 2017","question":"The structure passing through the central tendon of the diaphragm is:","options":[{"label":"A","text":"Oesophagus"},{"label":"B","text":"Aorta"},{"label":"C","text":"Inferior vena cava"},{"label":"D","text":"Sympathetic Chain"}],"correctAnswer":"C","explanation":{"short":"The inferior vena cava passes through the central tendon of the diaphragm.","detailed":"The IVC passes through the vena caval opening (T8 level) in the central tendon of the diaphragm. This is the ONLY structure that passes through the central tendon itself. All other structures (oesophagus, aorta) pass through the muscular part of the diaphragm.","reference":"Gray's Anatomy, 41st Edition: \"The vena caval opening is an aperture in the right leaf of the central tendon of the diaphragm at the level of T8. It transmits the inferior vena cava and the right phrenic nerve.\" — BD Chaurasia: \"IVC passes through the central tendon at T8. Oesophagus passes through the muscular part at T10. Aorta passes behind the diaphragm at T12.\"","whyOthersWrong":"• Oesophagus (A): Passes through the oesophageal hiatus in the MUSCULAR part (right crus) at T10 — NOT the central tendon.\n• Aorta (B): Passes through the aortic hiatus BEHIND the diaphragm (between crura and median arcuate ligament) at T12 — NOT through the central tendon.\n• Sympathetic chain (D): Passes behind the medial arcuate ligament — NOT through the central tendon.","examinerWants":"The examiner wants you to know that ONLY the IVC passes through the central tendon. This is a common trick question — students often confuse the diaphragmatic openings.","differentiator":"Diaphragmatic openings:\n• Central tendon: IVC (T8)\n• Muscular part: Oesophagus (T10)\n• Behind diaphragm: Aorta (T12)\n\nThe central tendon is the fibrous center — only the IVC pierces it.","mnemonic":"T8 = IVC (8 letters in 'VENA CAVA'). T10 = Oesophagus (10 letters). T12 = Aorta (behind)."},"image":"q10.jpg"},{"id":11,"exam":"AIIMS 2017","question":"Shape of Trapezius muscle is _______________________.","options":[{"label":"A","text":"Triangular"},{"label":"B","text":"Quadrilateral"},{"label":"C","text":"Pentagonal"},{"label":"D","text":"Linear"}],"correctAnswer":"A","explanation":{"short":"The trapezius is triangular when considering one side, and diamond-shaped when considering both sides together.","detailed":"The trapezius is a broad, flat muscle. When considering one side only, it is triangular in shape. When considering both sides together, the two triangles form a diamond/rhomboid shape — hence the name 'trapezius' (from Greek 'trapezion' = small table, referring to the quadrilateral shape).","reference":"Gray's Anatomy, 41st Edition: \"The trapezius is a broad, flat, triangular muscle.\" — BD Chaurasia: \"Trapezius is flat and triangular. When the two muscles are considered together, they form a diamond shape.\"","whyOthersWrong":"• Quadrilateral (B): The name 'trapezius' comes from the Greek for quadrilateral, but the muscle itself is triangular on one side.\n• Pentagonal (C): Not the shape of the trapezius.\n• Linear (D): The trapezius is a broad, flat muscle — not linear.","examinerWants":"The examiner is testing a specific anatomical detail. One side = triangular. Both sides = diamond. The name 'trapezius' refers to the combined shape.","differentiator":"One side = Triangle. Both sides = Diamond/Rhomboid. The name 'trapezius' = quadrilateral (Greek origin), but anatomically it's triangular per side.","mnemonic":"Trapezius = 'T'riangle (one side)"},"image":"q11.jpg"},{"id":12,"exam":"AIIMS 2017","question":"All of the following are true about grey rami communicantes except:","options":[{"label":"A","text":"Unmyelinated"},{"label":"B","text":"Connected to spinal nerve"},{"label":"C","text":"Preganglionic"},{"label":"D","text":"Present medial to white rami communicantes"}],"correctAnswer":"C","explanation":{"short":"Grey rami communicantes contain POSTGANGLIONIC fibers, not preganglionic.","detailed":"Grey rami communicantes carry postganglionic sympathetic fibers FROM the sympathetic ganglia BACK TO the spinal nerves. They are unmyelinated (hence grey), connect to spinal nerves, and lie medial to white rami. They contain NORADRENERGIC postganglionic fibers.","reference":"Gray's Anatomy, 41st Edition: \"Grey rami communicantes are postganglionic, unmyelinated fibres passing from the sympathetic ganglia to the spinal nerves.\" — BD Chaurasia: \"White rami = preganglionic, myelinated. Grey rami = postganglionic, unmyelinated.\"","whyOthersWrong":"• Unmyelinated (A): TRUE — grey rami are unmyelinated (hence the grey color).\n• Connected to spinal nerve (B): TRUE — grey rami connect sympathetic ganglia to spinal nerves.\n• Present medial to white rami (D): TRUE — anatomically, grey rami are medial to white rami.","examinerWants":"The examiner is testing the white vs. grey rami distinction. This is a classic 'except' question — you need to know all properties and identify the FALSE one.","differentiator":"White rami vs Grey rami:\n• White = Preganglionic, Myelinated, Acetylcholine\n• Grey = Postganglionic, Unmyelinated, Noradrenaline\n\nThe 'except' answer is 'Preganglionic' — grey rami are POSTGANGLIONIC.","mnemonic":"White = Preganglionic (W-P). Grey = Postganglionic (G-P). White comes first (preganglionic), grey comes second (postganglionic)."},"image":"q12.jpg"},{"id":13,"exam":"AIIMS 2017","question":"Which of the following represents a holocrine gland?","options":[{"label":"A","text":"A"},{"label":"B","text":"B"},{"label":"C","text":"C"},{"label":"D","text":"D"}],"correctAnswer":"B","explanation":{"short":"Image B shows a sebaceous gland — the classic example of a holocrine gland.","detailed":"Holocrine secretion involves the complete rupture of the cell to release its contents. The sebaceous gland (B) is the prime example — the entire cell disintegrates to release sebum. Apocrine glands (C, mammary gland) shed only the apical portion. Merocrine glands (like salivary glands) release contents via exocytosis without cell damage.","reference":"Gray's Anatomy, 41st Edition: \"Sebaceous glands are holocrine glands — their secretion involves the disintegration of the entire cell.\" — Junqueira's Histology: \"In holocrine secretion, the secretory product is released by the rupture of the cell membrane, destroying the cell.\"","whyOthersWrong":"• A: Not a holocrine gland (appears to be a merocrine gland).\n• C (Mammary gland): Apocrine gland — only the apical portion of the cell is shed.\n• D (Ceruminous gland): Also apocrine — similar mechanism to mammary glands.","examinerWants":"The examiner wants you to classify gland types by their secretion mechanism:\n• Holocrine = entire cell ruptures (sebaceous)\n• Apocrine = apical portion sheds (mammary, ceruminous)\n• Merocrine = exocytosis (salivary, sweat)","differentiator":"Holocrine = 'Holistic' loss (entire cell). Apocrine = 'Apical' loss. Merocrine = 'Membrane' intact (exocytosis).","mnemonic":"Holocrine = 'Whole' cell dies. Apocrine = 'Apex' breaks off. Merocrine = 'Membrane' stays."},"image":"q13.jpg"},{"id":14,"exam":"AIIMS 2017","question":"Which of the following structures marked in the below image gives rise to the heart in an adult?","options":[{"label":"A","text":"A"},{"label":"B","text":"C"},{"label":"C","text":"B"},{"label":"D","text":"D"}],"correctAnswer":"B","explanation":{"short":"Structure C is the developing heart (heart bulge) in the embryo.","detailed":"In embryonic development, the heart develops from the cardiogenic mesoderm. The heart bulge appears as a prominent swelling in the developing embryo. Structure C in the image represents this heart bulge, which gives rise to the adult heart.","reference":"Langman's Embryology: \"The heart is the first functional organ in the embryo. It develops from splanchnic mesoderm in the cardiogenic area.\" — Gray's Anatomy: \"The primitive heart tube forms from the cardiogenic plate and begins looping by day 22-23.\"","whyOthersWrong":"• A (Yolk sac): Extraembryonic structure — does not give rise to the heart.\n• B (Developing brain): Neuroectoderm origin — forms the CNS, not the heart.\n• D (Spinal column): Somite-derived — forms vertebral column, not the heart.","examinerWants":"The examiner is testing embryonic development — specifically, which embryonic structure gives rise to the heart. The heart develops from the cardiogenic mesoderm, visible as the heart bulge.","differentiator":"Embryonic structures:\n• Yolk sac → Blood cells, germ cells\n• Heart bulge → Heart\n• Neural tube → Brain, spinal cord\n• Somites → Vertebral column, muscles","mnemonic":"Heart = 'C'ardiac = 'C' in the diagram"},"image":"q14.jpg"},{"id":15,"exam":"AIIMS 2017","question":"A 58-year-old woman was undergoing cholecystectomy. During the procedure, the resident accidentally advanced the scissors along the superior border of the epiploic foramen causing injury. Which of the following structures is likely to be injured?","options":[{"label":"A","text":"Right lobe of liver"},{"label":"B","text":"Quadrate lobe of liver"},{"label":"C","text":"Caudate lobe of liver"},{"label":"D","text":"Fundus of gall bladder"}],"correctAnswer":"C","explanation":{"short":"The caudate lobe of the liver forms the superior boundary of the epiploic foramen.","detailed":"The epiploic foramen (foramen of Winslow) has four boundaries:\n• Superior: Caudate lobe of liver\n• Anterior: Hepatoduodenal ligament (free edge of lesser omentum)\n• Posterior: Inferior vena cava\n• Inferior: 1st part of duodenum\n\nThe scissors along the superior border would injure the caudate lobe.","reference":"Gray's Anatomy, 41st Edition: \"The epiploic foramen is bounded above by the caudate lobe of the liver, in front by the free border of the lesser omentum, behind by the inferior vena cava, and below by the first part of the duodenum.\" — BD Chaurasia: \"Superior boundary = caudate lobe.\"","whyOthersWrong":"• Right lobe (A): Forms part of the anterior abdominal wall, not the epiploic foramen boundary.\n• Quadrate lobe (B): Located on the inferior surface of the liver — not a boundary of the epiploic foramen.\n• Fundus of gall bladder (D): Located anteriorly — not the superior boundary.","examinerWants":"The examiner is testing epiploic foramen boundaries — a classic surgical anatomy question. The Pringle maneuver compresses the hepatoduodenal ligament (anterior boundary) to control hepatic bleeding.","differentiator":"Epiploic foramen boundaries:\n• Superior = Caudate lobe\n• Anterior = Hepatoduodenal ligament\n• Posterior = IVC\n• Inferior = Duodenum (D1)\n\nEach boundary has a specific clinical significance.","mnemonic":"Epiploic foramen = 'C-A-I-D': Caudate (superior), Anterior (hepatoduodenal ligament), IVC (posterior), Duodenum (inferior)"},"image":"q15.jpg"},{"id":16,"exam":"AIIMS 2017","question":"Which of the following structures does the cell pointed in arrow inhibit?","options":[{"label":"A","text":"Vestibular nuclei"},{"label":"B","text":"Anterior horn of spinal"},{"label":"C","text":"Basal ganglia"},{"label":"D","text":"Deep nuclei of cerebellum"}],"correctAnswer":"D","explanation":{"short":"Purkinje cells inhibit the deep cerebellar nuclei.","detailed":"Purkinje cells are the sole output neurons of the cerebellar cortex. They are GABAergic (inhibitory) and project to the deep cerebellar nuclei (dentate, emboliform, globose, fastigial). The only exception is the flocculonodular lobe, where Purkinje cells project directly to the vestibular nuclei.","reference":"Gray's Anatomy, 41st Edition: \"Purkinje cells are the only efferent neurons of the cerebellar cortex. They are inhibitory (GABAergic) and project to the deep cerebellar nuclei.\" — Guyton's Physiology: \"Purkinje cells exert inhibitory influence on the deep cerebellar nuclei.\"","whyOthersWrong":"• Vestibular nuclei (A): Only the flocculonodular lobe Purkinje cells project here — not the general rule.\n• Anterior horn of spinal (B): Purkinje cells don't project directly to the spinal cord.\n• Basal ganglia (C): A separate motor system — Purkinje cells don't project here.","examinerWants":"The examiner wants you to know that Purkinje cells are the INHIBITORY output of the cerebellar cortex. They project to deep cerebellar nuclei, which then project to the rest of the brain.","differentiator":"Purkinje cell output:\n• General rule → Deep cerebellar nuclei\n• Exception → Vestibular nuclei (flocculonodular lobe)\n\nThe question asks about the general rule, so deep nuclei is correct.","mnemonic":"Purkinje = 'P'rojects to deep nuclei. 'P' for 'P'urkinje, 'D' for 'D'eep."},"image":"q16.jpg"},{"id":17,"exam":"AIIMS 2017","question":"The image below shows the insertion of transversus abdominis muscle. Identify the conjoint tendon:","options":[{"label":"A","text":"A"},{"label":"B","text":"B"},{"label":"C","text":"C"},{"label":"D","text":"D"}],"correctAnswer":"C","explanation":{"short":"Structure C is the conjoint tendon (inguinal falx).","detailed":"The conjoint tendon is formed by the lower fibers of the internal oblique and the lower part of the aponeurosis of the transversus abdominis. It is attached to the pubic crest and extends along the pectineal line. It forms the posterior wall of the inguinal canal.","reference":"Gray's Anatomy, 41st Edition: \"The conjoint tendon (inguinal falx) is formed by the lower fibres of the internal oblique and the lower part of the aponeurosis of the transversus abdominis.\" — BD Chaurasia: \"Conjoint tendon = Internal oblique + Transversus abdominis aponeurosis. Inserts on pubic crest and pectineal line.\"","whyOthersWrong":"• A (Lumbar fascia): Posterior structure — not related to the conjoint tendon.\n• B (Transversus abdominis muscle belly): The muscle itself, not its tendon.\n• D (Inguinal ligament): A different structure — forms the lower boundary of the inguinal canal.","examinerWants":"The examiner is testing inguinal canal anatomy. The conjoint tendon reinforces the posterior wall of the inguinal canal and is clinically significant in hernia repair.","differentiator":"Conjoint tendon = Internal oblique + Transversus abdominis (lower fibers). Inguinal ligament = External oblique aponeurosis (lower border). Don't confuse them.","mnemonic":"Conjoint = 'Combined' (two muscles join together: Internal oblique + Transversus)"},"image":"q17.jpg"},{"id":18,"exam":"AIIMS 2017","question":"What represents the marked area in the given histology of lymph node?","options":[{"label":"A","text":"Marginal zone"},{"label":"B","text":"Paracortical zone"},{"label":"C","text":"Germinal center"},{"label":"D","text":"Mantle zone"}],"correctAnswer":"D","explanation":{"short":"The marked area is the mantle zone — a dark ring of small lymphocytes surrounding the germinal center.","detailed":"The mantle zone is the outer ring of a lymphoid follicle, composed mainly of quiescent B cells with condensed heterochromatic nuclei. It surrounds the lighter germinal center. The mantle zone is deeply basophilic on H&E staining due to the dense chromatin of its small lymphocytes.","reference":"Gray's Anatomy, 41st Edition: \"The mantle zone contains small, resting B lymphocytes that form a dense ring around the germinal centre.\" — Junqueira's Histology: \"The mantle zone appears as a dark-staining rim of small lymphocytes surrounding the paler germinal center.\"","whyOthersWrong":"• Marginal zone (A): Located peripheral to the mantle zone — contains memory B cells and is often inapparent in peripheral lymph nodes.\n• Paracortical zone (B): Located between cortical follicles and medulla — T-cell zone, not part of the follicle.\n• Germinal center (C): The LIGHTER central area — this is where B cells proliferate and undergo somatic hypermutation.","examinerWants":"The examiner wants you to identify lymph node zones on histology. The dark ring (mantle) vs. light center (germinal) is a classic histology distinction.","differentiator":"Lymph node follicle zones:\n• Germinal center = LIGHT (active B cells)\n• Mantle zone = DARK (resting B cells)\n• Marginal zone = peripheral (memory B cells)\n\nDark outside, light inside = Mantle around germinal center.","mnemonic":"Mantle = 'M'ask (dark ring). Germinal = 'G'low (light center)."},"image":"q18.jpg"},{"id":19,"exam":"AIIMS 2017","question":"A young patient presented with hypoparathyroidism, absent thymus and tetany. Which of the following marked areas in the picture is defective in this condition?","options":[{"label":"A","text":"1"},{"label":"B","text":"2"},{"label":"C","text":"3"},{"label":"D","text":"4"}],"correctAnswer":"C","explanation":{"short":"This is DiGeorge syndrome — defective 3rd pharyngeal pouch (which gives rise to thymus and inferior parathyroid).","detailed":"DiGeorge syndrome is caused by deletion of chromosome 22q11.2. The 3rd pharyngeal pouch normally gives rise to the thymus and inferior parathyroid glands. When defective, the patient presents with:\n• Absent thymus → T-cell deficiency\n• Hypoparathyroidism → Hypocalcemia → Tetany\n• CATCH-22: Cardiac defects, Abnormal facies, Thymic aplasia, Cleft palate, Hypocalcemia","reference":"Langman's Embryology: \"The 3rd pharyngeal pouch gives rise to the thymus and the inferior parathyroid gland.\" — Gray's Anatomy: \"Failure of development of the 3rd and 4th pharyngeal pouches results in DiGeorge syndrome.\"","whyOthersWrong":"• 1 (1st pouch): Gives rise to middle ear, eustachian tube — not thymus.\n• 2 (2nd pouch): Gives rise to palatine tonsil — not thymus.\n• 4 (4th pouch): Gives rise to superior parathyroid and ultimobranchial body — not thymus.","examinerWants":"The examiner is testing pharyngeal pouch derivatives. The 3rd pouch = thymus + inferior parathyroid. The 4th pouch = superior parathyroid. DiGeorge syndrome = 3rd + 4th pouch failure.","differentiator":"Pharyngeal pouch derivatives:\n• 1st → Middle ear, eustachian tube\n• 2nd → Palatine tonsil\n• 3rd → Thymus, inferior parathyroid\n• 4th → Superior parathyroid, ultimobranchial body\n\nDiGeorge = 3rd + 4th pouch failure = Thymus + Parathyroid loss.","mnemonic":"3rd pouch = 'T'hymus (T for Third). DiGeorge = 'D'eletion 22, 'D'evelopmental failure of 3rd pouch."},"image":"q19.jpg"},{"id":20,"exam":"AIIMS 2017","question":"A patient came with complaints of inability to move his 4th and 5th digit, cannot hold a pen and he was not able to hold a paper between fingers. Which of the following sites given below is the probable cause of injury to the nerve in question?","options":[{"label":"A","text":"A"},{"label":"B","text":"B"},{"label":"C","text":"C"},{"label":"D","text":"D"}],"correctAnswer":"C","explanation":{"short":"This is ulnar nerve injury at the medial epicondyle (C).","detailed":"The clinical presentation — inability to move 4th and 5th digits, cannot hold a pen (card test positive), cannot hold paper between fingers — indicates ulnar nerve palsy. The ulnar nerve runs behind the medial epicondyle of the humerus, making it vulnerable to injury at this site.","reference":"Gray's Anatomy, 41st Edition: \"The ulnar nerve passes behind the medial epicondyle of the humerus, where it is palpable and vulnerable to injury.\" — BD Chaurasia: \"Ulnar nerve injury at medial epicondyle causes: claw hand, card test positive, Froment's sign positive.\"","whyOthersWrong":"• A (Radial groove): Contains the radial nerve — injury causes wrist drop, not ulnar symptoms.\n• B (Lateral epicondyle): Not a common site for ulnar nerve injury.\n• D (Neck of humerus): Contains the axillary nerve — injury causes loss of shoulder abduction.","examinerWants":"The examiner is testing nerve injuries and their clinical presentation. Ulnar nerve at medial epicondyle is one of the most commonly tested nerve injury sites.","differentiator":"Nerve injuries by site:\n• Radial groove → Radial nerve → Wrist drop\n• Medial epicondyle → Ulnar nerve → Claw hand, card test\n• Neck of humerus → Axillary nerve → Loss of shoulder abduction\n• Spiral groove → Radial nerve → Wrist drop","flowchart":"Ulnar nerve injury:\n1. Inability to move 4th/5th digits\n2. Card test positive (can't hold card)\n3. Froment's sign positive\n4. Wartenberg sign\n5. Claw hand deformity\n\nSite: Medial epicondyle of humerus","mnemonic":"Ulnar = 'U' behind medial epicondyle. 'U'lnar = 'U'nable to hold paper."},"image":"q20.jpg"},{"id":21,"exam":"AIIMS 2017","question":"Which of the following structures of the scapula is palpable in the infraclavicular fossa?","options":[{"label":"A","text":"Coracoid process"},{"label":"B","text":"Acromion process"},{"label":"C","text":"Glenoid cavity"},{"label":"D","text":"Inferior angle"}],"correctAnswer":"A","explanation":{"short":"The coracoid process is palpable in the infraclavicular fossa (deltopectoral triangle).","detailed":"The coracoid process is a hook-like projection from the upper border of the scapula. Its apex lies approximately 2.5 cm below the clavicle, immediately lateral to the infraclavicular fossa. It can be palpated by pressing downward and laterally below the clavicle.","reference":"Gray's Anatomy, 41st Edition: \"The coracoid process can be palpated below the lateral end of the clavicle, in the infraclavicular fossa.\" — BD Chaurasia: \"Coracoid process is the only part of scapula that can be palpated anteriorly.\"","whyOthersWrong":"• Acromion process (B): Palpable at the tip of the shoulder, not in the infraclavicular fossa.\n• Glenoid cavity (C): Deep within the shoulder joint — not palpable.\n• Inferior angle (D): Palpable on the posterior chest wall, not in the infraclavicular fossa.","examinerWants":"The examiner wants you to know which scapular structures are palpable and where. The coracoid process is the only anteriorly palpable part of the scapula.","differentiator":"Scapula palpability:\n• Coracoid process → Infraclavicular fossa (anterior)\n• Acromion → Tip of shoulder (lateral)\n• Spine → Posterior\n• Inferior angle → Posterior chest wall","mnemonic":"Coracoid = 'C'lavicle level (2.5 cm below). 'C' for 'C'oracoid, 'C'lavicle."},"image":"q21.jpg"},{"id":22,"exam":"AIIMS 2017","question":"Identify the pelvic diaphragm in the picture given below.","options":[{"label":"A","text":"A"},{"label":"B","text":"B"},{"label":"C","text":"C"},{"label":"D","text":"D"}],"correctAnswer":"A","explanation":{"short":"Structure A is the levator ani muscle, which forms the pelvic diaphragm.","detailed":"The pelvic diaphragm is formed by the levator ani (pubococcygeus, iliococcygeus, puborectalis) and the ischiococcygeus (coccygeus) muscles. It forms the floor of the pelvic cavity and supports the pelvic organs.","reference":"Gray's Anatomy, 41st Edition: \"The pelvic diaphragm is a muscular sheet comprising the levator ani and the coccygeus. It forms the inferior boundary of the pelvic cavity.\" — BD Chaurasia: \"Levator ani = Pubococcygeus + Iliococcygeus + Puborectalis. Together with coccygeus, forms the pelvic diaphragm.\"","whyOthersWrong":"• B (External anal sphincter): A separate muscle surrounding the anus — not part of the pelvic diaphragm.\n• C (Internal anal sphincter): Smooth muscle of the anal canal — not part of the pelvic diaphragm.\n• D (Pudendal canal): Contains the pudendal nerve — not a muscle.","examinerWants":"The examiner is testing pelvic floor anatomy. The pelvic diaphragm = levator ani + coccygeus. Don't confuse it with the urogenital diaphragm (which is a separate structure).","differentiator":"Pelvic floor structures:\n• Pelvic diaphragm (superior) = Levator ani + Coccygeus\n• Urogenital diaphragm (inferior) = Deep transverse perineal + External urethral sphincter\n• Perineal membrane = Inferior fascia of urogenital diaphragm","mnemonic":"Pelvic diaphragm = 'L'evator ani ('L' for 'L'ower pelvic floor). 'P'elvic = 'P'ubococcygeus + 'P'uborectalis."},"image":"q22.jpg"},{"id":23,"exam":"AIIMS 2017","question":"What is the root value of cremasteric reflex?","options":[{"label":"A","text":"L1, L2"},{"label":"B","text":"L3, L4"},{"label":"C","text":"S1, S2"},{"label":"D","text":"T8, T9"}],"correctAnswer":"A","explanation":{"short":"Cremasteric reflex is mediated by L1 and L2.","detailed":"The cremasteric reflex is a superficial reflex. Stroking the medial thigh (afferent: femoral branch of genitofemoral nerve, L1-L2) causes ipsilateral elevation of the testicle (efferent: genital branch of genitofemoral nerve, L1-L2).","reference":"Gray's Anatomy, 41st Edition: \"The cremasteric reflex has an afferent limb in the femoral branch of the genitofemoral nerve (L1, L2) and an efferent limb in the genital branch of the genitofemoral nerve (L1, L2).\" — BRS Physiology: \"Cremasteric reflex: L1, L2 (genitofemoral nerve).\"","whyOthersWrong":"• L3, L4 (B): Root value of knee jerk (patellar reflex) — a deep reflex, not cremasteric.\n• S1, S2 (C): Root value of ankle jerk — a deep reflex, not cremasteric.\n• T8, T9 (D): Root value of upper abdominal reflex — not cremasteric.","examinerWants":"The examiner is testing reflex root values — a high-yield topic. You need to know both deep and superficial reflexes and their root values.","differentiator":"Key reflexes:\n• Cremasteric → L1, L2\n• Knee jerk → L3, L4\n• Ankle jerk → S1, S2\n• Biceps → C5, C6\n• Abdominal → T7-T12","mnemonic":"Cremasteric = 'L1, L2' = 'L'ift testicle (L for Lift). Knee = L3, L4. Ankle = S1, S2.","flowchart":"Reflex root values:\n\nDeep reflexes:\n• Biceps → C5, C6\n• Brachioradialis → C5, C6\n• Triceps → C6, C7\n• Knee → L3, L4\n• Ankle → S1, S2\n\nSuperficial reflexes:\n• Abdominal → T7-T12\n• Cremasteric → L1, L2\n• Plantar → L5, S1\n• Anal → S3, S4"},"image":"q23.jpg"}];
+
+init();
+</script>
+
+</body>
+</html>

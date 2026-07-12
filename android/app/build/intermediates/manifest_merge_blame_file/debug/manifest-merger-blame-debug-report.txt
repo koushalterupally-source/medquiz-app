@@ -1,0 +1,90 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.medquiz.app"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:4:5-67
+11-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+12-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:5:5-80
+12-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:5:22-77
+13
+14    <permission
+14-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+15        android:name="com.medquiz.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+15-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+16        android:protectionLevel="signature" />
+16-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+17
+18    <uses-permission android:name="com.medquiz.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+18-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+18-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+19
+20    <application
+20-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:7:5-24:19
+21        android:allowBackup="true"
+21-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:8:9-35
+22        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+22-->[androidx.core:core:1.9.0] /home/work/.gradle/caches/transforms-3/69031d9de34e6ae4e80492f7a424b6d1/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+23        android:debuggable="true"
+24        android:extractNativeLibs="false"
+25        android:icon="@mipmap/ic_launcher"
+25-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:9:9-43
+26        android:label="MedQuiz"
+26-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:10:9-32
+27        android:theme="@style/Theme.MedQuiz"
+27-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:11:9-45
+28        android:usesCleartextTraffic="true" >
+28-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:12:9-44
+29        <activity
+29-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:14:9-23:20
+30            android:name="com.medquiz.app.MainActivity"
+30-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:15:13-41
+31            android:configChanges="orientation|screenSize|keyboardHidden"
+31-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:17:13-74
+32            android:exported="true"
+32-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:16:13-36
+33            android:screenOrientation="portrait" >
+33-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:18:13-49
+34            <intent-filter>
+34-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:19:13-22:29
+35                <action android:name="android.intent.action.MAIN" />
+35-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:20:17-69
+35-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:20:25-66
+36
+37                <category android:name="android.intent.category.LAUNCHER" />
+37-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:21:17-77
+37-->/home/work/.openclaw/workspace/medquiz-app/android/app/src/main/AndroidManifest.xml:21:27-74
+38            </intent-filter>
+39        </activity>
+40
+41        <provider
+41-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+42            android:name="androidx.startup.InitializationProvider"
+42-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
+43            android:authorities="com.medquiz.app.androidx-startup"
+43-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
+44            android:exported="false" >
+44-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
+45            <meta-data
+45-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+46                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+46-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
+47                android:value="androidx.startup" />
+47-->[androidx.emoji2:emoji2:1.2.0] /home/work/.gradle/caches/transforms-3/986cb90b811bf58fb8e8ff4e6584552d/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
+48            <meta-data
+48-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/work/.gradle/caches/transforms-3/b414648e0504e137bfb93e4ffd20cdf8/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:31:13-33:52
+49                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+49-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/work/.gradle/caches/transforms-3/b414648e0504e137bfb93e4ffd20cdf8/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:32:17-78
+50                android:value="androidx.startup" />
+50-->[androidx.lifecycle:lifecycle-process:2.4.1] /home/work/.gradle/caches/transforms-3/b414648e0504e137bfb93e4ffd20cdf8/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:33:17-49
+51        </provider>
+52    </application>
+53
+54</manifest>
