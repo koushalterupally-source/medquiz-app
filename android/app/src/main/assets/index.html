@@ -884,7 +884,7 @@ let cerebSubjectCache = {}; // subjectFile -> questions array (cached after firs
 
 async function loadCerebManifest() {
   if (cerebManifest) return cerebManifest;
-  const res = await fetch('cereb/manifest.json');
+  const res = await fetch('file:///android_asset/cereb/manifest.json');
   cerebManifest = await res.json();
   return cerebManifest;
 }
@@ -942,7 +942,8 @@ async function openCerebSubtopic(subj, subtopicName) {
   showToast('Loading questions...');
   let questions = cerebSubjectCache[subj.file];
   if (!questions) {
-    const res = await fetch(subj.file);
+    const res = await fetch('file:///android_asset/' + subj.file);
+    
     questions = await res.json();
     cerebSubjectCache[subj.file] = questions;
   }
